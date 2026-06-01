@@ -7,6 +7,7 @@
 <meta name="supported-color-schemes" content="light">
 <title>Ellie · Smertelogg</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     color-scheme: light only;
@@ -898,6 +899,19 @@
 </head>
 <body>
 
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="max-width:340px;width:100%;">
+    <h1 style="font-family:var(--font-serif,'DM Serif Display'),serif;font-size:34px;color:var(--text,#3a3027);margin:0 0 6px;">Ellie's <span style="font-style:italic;color:var(--accent,#c08440);">smertelogg</span></h1>
+    <p style="color:var(--text-muted,#8a7d6b);font-size:13px;margin:0 0 28px;">Skriv inn familiepassordet</p>
+    <input id="login-pw" type="password" autocomplete="current-password" placeholder="Passord"
+      style="width:100%;box-sizing:border-box;padding:14px 16px;font-size:16px;border:1px solid var(--surface2,#e7ddd0);border-radius:12px;background:var(--surface,#fff);color:var(--text,#3a3027);margin-bottom:12px;"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="login-err" style="color:#c0392b;font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+    <button onclick="doLogin()"
+      style="width:100%;padding:14px;font-size:15px;font-weight:500;border:none;border-radius:12px;background:var(--accent,#c08440);color:#fff;cursor:pointer;">Logg inn</button>
+  </div>
+</div>
+
 <header>
   <div class="header-title">
     <h1>Ellie's <span>smertelogg</span></h1>
@@ -907,6 +921,7 @@
     <strong id="total-entries">0</strong>
     anfall logget
   </div>
+  <button onclick="logout()" title="Logg ut" style="margin-left:10px;background:none;border:none;color:var(--text-muted,#8a7d6b);font-size:11px;cursor:pointer;text-decoration:underline;">Logg ut</button>
 </header>
 
 <div class="tabs">
@@ -1292,18 +1307,64 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ---- SUPABASE ----
+const SB_URL = 'https://khfnxtqjiqlpdtotmlig.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoZm54dHFqaXFscGR0b3RtbGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3OTEsImV4cCI6MjA5MDQ2Nzc5MX0.VtWIiHKKIgEHfXkU10nn_rI22t-zsO1hB3CjWacT62s';
+const FAMILY_EMAIL = 'familie@ellie-log.app';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
 // ---- STATE ----
-let entries = JSON.parse(localStorage.getItem('ellie-pain-log') || '[]');
+let entries = [];
 let selectedPain = 0;
 const chipState = { location:[], onset:[], triggers:[], weather:[], relief:[] };
 
 // ---- INIT ----
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const now = new Date();
   document.getElementById('f-date').value = now.toISOString().split('T')[0];
   document.getElementById('f-time').value = now.toTimeString().slice(0,5);
-  renderAll();
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { document.getElementById('login-screen').style.display = 'none'; await startApp(); }
+  else { document.getElementById('login-screen').style.display = 'flex'; }
 });
+
+// ---- AUTH ----
+async function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: FAMILY_EMAIL, password: pw });
+  if (error) { err.textContent = 'Feil passord'; return; }
+  document.getElementById('login-screen').style.display = 'none';
+  await startApp();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function startApp() {
+  await loadEntries();
+  await maybeMigrateLocal();
+  renderAll();
+}
+
+async function loadEntries() {
+  const { data, error } = await sb.from('entries').select('*').order('id', { ascending: false });
+  if (error) { showToast('Kunne ikke laste data'); entries = []; return; }
+  entries = data || [];
+}
+
+async function maybeMigrateLocal() {
+  const old = JSON.parse(localStorage.getItem('ellie-pain-log') || '[]');
+  if (!old.length) return;
+  if (confirm(`Fant ${old.length} anfall lagret lokalt på denne telefonen. Laste dem opp til den delte loggen?`)) {
+    const { error } = await sb.from('entries').upsert(old);
+    if (!error) { localStorage.removeItem('ellie-pain-log'); await loadEntries(); }
+    else showToast('Opplasting feilet');
+  }
+}
 
 // ---- TABS ----
 function switchTab(name) {
@@ -1332,7 +1393,7 @@ function toggleChip(el, group) {
   else arr.push(val);
 }
 
-function saveEntry() {
+async function saveEntry() {
   const date = document.getElementById('f-date').value;
   const time = document.getElementById('f-time').value;
   const duration = parseInt(document.getElementById('f-duration').value) || null;
@@ -1354,8 +1415,9 @@ function saveEntry() {
     notes
   };
 
+  const { error } = await sb.from('entries').insert(entry);
+  if (error) { showToast('Lagring feilet'); return; }
   entries.unshift(entry);
-  save();
   resetForm();
   renderAll();
   showToast('Anfall lagret ✓');
@@ -1531,16 +1593,13 @@ function formatDate(d) {
   return `${day}/${m}/${y.slice(2)}`;
 }
 
-function deleteEntry(id) {
+async function deleteEntry(id) {
   if (!confirm('Slette dette anfallet?')) return;
+  const { error } = await sb.from('entries').delete().eq('id', id);
+  if (error) { showToast('Sletting feilet'); return; }
   entries = entries.filter(e => e.id !== id);
-  save();
   renderHistory();
   renderAll();
-}
-
-function save() {
-  localStorage.setItem('ellie-pain-log', JSON.stringify(entries));
 }
 
 function showToast(msg) {
@@ -1564,12 +1623,13 @@ function importData() {
   input.accept = '.json';
   input.onchange = e => {
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       try {
         const imported = JSON.parse(ev.target.result);
         if (Array.isArray(imported)) {
-          entries = imported;
-          save();
+          const { error } = await sb.from('entries').upsert(imported);
+          if (error) { showToast('Importering feilet'); return; }
+          await loadEntries();
           renderAll();
           showToast(`Importerte ${entries.length} anfall`);
         }
