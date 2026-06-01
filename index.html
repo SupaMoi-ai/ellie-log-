@@ -49,7 +49,7 @@
   }
 
   /* READABILITY — larger text for all ages */
-  .tab { font-size: 13px !important; padding: 16px 18px 14px !important; }
+  .tab { font-size: 13px !important; }
   .section-label { font-size: 12px !important; letter-spacing: 1px !important; }
   .field label { font-size: 12px !important; }
   .field input, .field select, .field textarea { font-size: 16px !important; padding: 14px !important; }
@@ -127,36 +127,39 @@
   /* TABS */
   .tabs {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    gap: 0;
-    overflow-x: auto;
+    padding: 4px 12px;
+    gap: 2px;
   }
 
   .tab {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    padding: 14px 20px 12px;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    padding: 12px 16px;
+    margin: 2px;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
+    border: 1px solid var(--border);
+    border-radius: 22px;
     transition: all 0.2s;
     white-space: nowrap;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
+    background: var(--surface);
   }
 
   .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+    color: #ffffff;
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 500;
   }
 
   .tab:hover:not(.active) {
-    color: var(--text-dim);
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   /* PANELS */
@@ -890,8 +893,6 @@
     .research-panel, .plan-panel { padding: 16px; }
     .research-header, .plan-header { flex-direction: column; }
     .copy-btn { width: 100%; }
-    .tabs { padding: 0 12px; }
-    .tab { padding: 12px 14px 10px; }
   }
 </style>
 </head>
@@ -1133,8 +1134,8 @@
 
     <div class="source-links">
       <div class="source-links-label">Åpne søk på nett (alltid oppdatert)</div>
-      <a class="source-link" href="https://scholar.google.com/scholar?as_ylo=2026&q=FEPS3&hl=no&as_sdt=0,5" target="_blank" rel="noopener">
-        <span class="source-name">Google Scholar — FEPS3 (2026→)</span>
+      <a class="source-link" href="https://scholar.google.com/scholar?q=SCN11A+%22Ser697Pro%22+OR+%22c.2089T%3EC%22&hl=no&as_sdt=0,5" target="_blank" rel="noopener">
+        <span class="source-name">Google Scholar — Ellies variant (Ser697Pro)</span>
         <span class="source-arrow">↗</span>
       </a>
       <a class="source-link" href="https://scholar.google.com/scholar?as_ylo=2026&q=SCN11A+OR+Nav1.9+pain&hl=no&as_sdt=0,5" target="_blank" rel="noopener">
@@ -1182,10 +1183,47 @@
       <div class="findings-note">Til vår egen lesing – snakk alltid med Ellies lege før dere endrer noe.</div>
     </div>
 
+    <div class="findings-box" style="border-left:3px solid var(--accent);">
+      <div class="findings-label">Mest lovende medisin: ANP-230</div>
+      <div class="finding">
+        <p>ANP-230 (fra <strong>AlphaNavi Pharma</strong>, Japan) er den eneste medisinen laget for akkurat denne sykdommen. Den blokkerer Nav1.9 – <strong>Ellies kanal</strong> – og er allerede i klinisk studie på FEPS-pasienter med SCN11A-mutasjon. Den treffer ikke hjertet (lav effekt på Nav1.5), noe som er viktig.</p>
+        <p style="margin-top:8px;"><strong>Spør Dr. Mero:</strong> «Kjenner dere til ANP-230-studiene (ISRCTN07951717), og kan Ellie vurderes for et internasjonalt FEPS/SCN11A-register eller fremtidig studietilgang?»</p>
+      </div>
+    </div>
+
+    <div class="findings-box">
+      <div class="findings-label">Forskningsbrief — fem temaer</div>
+
+      <div class="finding">
+        <div class="finding-head">1 · SCN11A / FEPS-3 (diagnosen)</div>
+        <p>Begynner i tidlig barndom, mildner med alderen, utløses av kulde/tretthet/faste/vær. Svært sjelden – bare ~20–23 familier beskrevet i verden. Den japanske 2024-studien (212 pasienter) er det største datasettet og gir formelle diagnosekriterier vi kan bruke til å dokumentere Ellies tilfelle.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">2 · Nav1.9-kanalen</div>
+        <p>Én av ni natriumkanaler; sitter i smertenervene, nesten ikke i hjernen – derfor kan en medisin som treffer den dempe smerte uten å sløve. En fersk oversikt (feb 2026) bekrefter at den første natriumkanal-medisinen ble godkjent i 2025, noe som åpner døren for en Nav1.9-versjon.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">3 · Behandling for barn</div>
+        <p>Ingen kur ennå. Best dokumentert: varme, massasje, paracet/ibux, og å unngå utløsere. I ett dokumentert barnetilfelle (Keio, 4-årig jente) ga karbamazepin og gabapentin <em>ikke</em> god nok lindring – nyttig å vite for realistiske forventninger.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">4 · Nye tilfeller i verden</div>
+        <p>Nagao 2025: en 7-årig jente, fire generasjoner affisert, far ikke – nesten identisk med Ellies familie. N816K-tilfellet: et barn med ben-smerte pluss magesmerte/forstoppelse, der patch-clamp viste overaktiv kanal – akkurat den testen Ellies variant trenger.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">5 · Lamotrigin (Lamictal)</div>
+        <p>Roer natriumkanaler, derfor prøves den. Ved beslektede tilstander har den «varierende effekt». Ved den nære slektningen PEPD er karbamazepin mest effektivt – godt å vite om alternativer hvis lamotrigin svikter. Lakosamid-studien viser at målrettede studier på denne pasientgruppen er mulig.</p>
+      </div>
+
+      <div class="findings-note">Ta alltid med noe herfra til Dr. Mero før dere endrer noe.</div>
+    </div>
+
   </div>
 </div>
-
-<!-- PLAN PANEL -->
 <div class="panel" id="panel-plan">
   <div class="plan-panel">
 
@@ -1228,13 +1266,21 @@
       <p><strong>4 — Forskningsnettverk.</strong> Dr. Mero vil allerede publisere — bygg på det. Internasjonalt register = Ellie vurderes automatisk hvis Nav1.9-rettet studie åpner.</p>
     </div>
 
+    <div class="plan-block highlight">
+      <div class="plan-block-label">Mest lovende medisin: ANP-230</div>
+      <p>ANP-230 (AlphaNavi Pharma, Japan) er den eneste medisinen laget for akkurat denne sykdommen. Den blokkerer <strong>Nav1.9 – Ellies kanal</strong> – og er i klinisk studie på FEPS-pasienter med SCN11A-mutasjon. Treffer ikke hjertet.</p>
+      <p style="margin-top:8px;"><strong>Spørsmål til Dr. Mero:</strong> Kjenner dere til ANP-230-studiene (ISRCTN07951717), og kan Ellie vurderes for internasjonalt FEPS/SCN11A-register eller fremtidig studietilgang?</p>
+    </div>
+
     <div class="plan-block">
       <div class="plan-block-label">Nøkkelartikler (til legen)</div>
       <ul class="plan-papers">
         <li>Noguchi/Tezuka m.fl. (2024) — japansk nasjonal kohort + diagnosekriterier. <em>Int J Mol Sci.</em></li>
-        <li>van den Braak m.fl. (2025) — funksjonell Nav1.9-karakterisering, Leipold/Lampert. <em>J Gen Physiol.</em></li>
-        <li>Leipold m.fl. — kulde-forverret Nav1.9 (p.V1184A). <em>Nat Commun.</em></li>
-        <li>Tanaka m.fl. (2019) — SCN11A-barn behandlet forebyggende med natriumkanalblokkere. <em>No To Hattatsu.</em></li>
+        <li>Nagao m.fl. (2025) — japansk familie, 7-årig jente, ny variant p.Leu811Phe. <em>Biochem Genet.</em></li>
+        <li>Kamei m.fl. (2025) — ANP-230, Nav1.7/1.8/1.9-blokker, FEPS-modell. <em>Biochem Biophys Res Commun.</em></li>
+        <li>Okuda m.fl. (2016) — FEPS3 i japanske familier + musemodell. <em>PLoS One.</em> (PMID 27224030)</li>
+        <li>N816K (2019) — barn med ben- og magesmerte, patch-clamp. <em>Front Neurosci.</em></li>
+        <li>Tanaka m.fl. (2019) — SCN11A-barn, forebyggende behandling. <em>No To Hattatsu.</em></li>
       </ul>
     </div>
 
@@ -1559,11 +1605,17 @@ BAKGRUNN PER RETNING:
 3 – Kuldekoblingen (kan handles på nå). Egen undertype med kulde-/værforverret Nav1.9-smerte er mekanistisk bekreftet. Kulde- og væromslag-unngåelse er reell mekanisme. Smerteloggen beviser Ellies spesifikke mønster.
 4 – Forskningsnettverk. Dr. Mero vil allerede publisere – bygg på det. Internasjonalt register = Ellie vurderes automatisk hvis Nav1.9-rettet studie åpner.
 
+MEST LOVENDE MEDISIN – ANP-230:
+ANP-230 (AlphaNavi Pharma, Japan) er den eneste medisinen laget for akkurat denne sykdommen. Den blokkerer Nav1.9 – Ellies kanal – og er i klinisk studie på FEPS-pasienter med SCN11A-mutasjon. Treffer ikke hjertet.
+Spørsmål til Dr. Mero: Kjenner dere til ANP-230-studiene (ISRCTN07951717), og kan Ellie vurderes for internasjonalt FEPS/SCN11A-register eller fremtidig studietilgang?
+
 NØKKELARTIKLER (til legen):
 - Noguchi/Tezuka m.fl. (2024) – japansk nasjonal kohort + diagnosekriterier. Int J Mol Sci.
-- van den Braak m.fl. (2025) – funksjonell Nav1.9-karakterisering, Leipold/Lampert. J Gen Physiol.
-- Leipold m.fl. – kulde-forverret Nav1.9 (p.V1184A). Nat Commun.
-- Tanaka m.fl. (2019) – SCN11A-barn behandlet forebyggende med natriumkanalblokkere. No To Hattatsu.`;
+- Nagao m.fl. (2025) – japansk familie, 7-årig jente, ny variant p.Leu811Phe. Biochem Genet.
+- Kamei m.fl. (2025) – ANP-230, Nav1.7/1.8/1.9-blokker, FEPS-modell. Biochem Biophys Res Commun.
+- Okuda m.fl. (2016) – FEPS3 i japanske familier + musemodell. PLoS One. (PMID 27224030)
+- N816K (2019) – barn med ben- og magesmerte, patch-clamp. Front Neurosci.
+- Tanaka m.fl. (2019) – SCN11A-barn, forebyggende behandling. No To Hattatsu.`;
 
 function copyPlan() {
   const label = document.getElementById('copy-label');
