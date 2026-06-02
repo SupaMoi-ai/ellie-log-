@@ -1227,6 +1227,15 @@
 <div class="panel" id="panel-patterns">
   <div class="patterns-panel">
 
+    <div class="chart-section" style="margin-bottom:24px;">
+      <div class="chart-title">Smerte per dag — siste 30 dager</div>
+      <div id="daily-pain-chart" style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-top:10px;"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;">
+        <span style="font-size:9px;color:var(--text-muted);font-family:var(--font-mono);" id="daily-pain-start"></span>
+        <span style="font-size:9px;color:var(--text-muted);font-family:var(--font-mono);" id="daily-pain-end"></span>
+      </div>
+    </div>
+
     <div class="insights-grid" id="insights-grid">
       <div class="insight-card">
         <div class="ins-label">Antall anfall</div>
@@ -1566,7 +1575,7 @@ async function maybeMigrateLocal() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
   if (name === 'patterns') renderPatterns();
   if (name === 'history') renderHistory();
@@ -1597,13 +1606,21 @@ async function saveEntry() {
   const notes = document.getElementById('f-notes').value.trim();
   const logged_by = document.getElementById('f-logged-by').value || null;
 
-  if (!date || !time) { showToast('Fyll inn dato og tid'); return; }
-  if (!selectedPain) { showToast('Velg hvor vondt det var'); return; }
+  const missing = [];
+  if (!date || !time) missing.push('dato og tid');
+  if (!selectedPain) missing.push('smertestyrke');
+  if (missing.length) {
+    const ok = confirm(`Noen felter mangler: ${missing.join(', ')}. Lagre likevel?`);
+    if (!ok) return;
+  }
 
+  const now = new Date();
   const entry = {
     id: Date.now(),
-    date, time, duration, sleep, logged_by,
-    pain: selectedPain,
+    date: date || now.toISOString().split('T')[0],
+    time: time || now.toTimeString().slice(0,5),
+    duration, sleep, logged_by,
+    pain: selectedPain || 0,
     location: [...chipState.location],
     onset: [...chipState.onset],
     triggers: [...chipState.triggers],
@@ -1613,11 +1630,12 @@ async function saveEntry() {
   };
 
   const { error } = await sb.from('entries').insert(entry);
-  if (error) { showToast('Lagring feilet'); return; }
+  if (error) { console.error('Supabase insert error:', error); showToast('Lagring feilet: ' + error.message); return; }
   entries.unshift(entry);
   resetForm();
   renderAll();
   showToast('Anfall lagret ✓');
+  switchTab('patterns');
 }
 
 function resetForm() {
@@ -1753,12 +1771,51 @@ function renderPatterns() {
   const topRelief = Object.entries(reliefMap).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('stat-relief').textContent = topRelief ? topRelief[0] : '—';
 
+  // Daily pain chart
+  renderDailyPain();
+
   // Heatmap
   renderHeatmap(hourCounts);
 
   // Trigger bars
   renderBars('trigger-bars', countField('triggers'));
   renderBars('location-bars', countField('location'));
+}
+
+function renderDailyPain() {
+  const container = document.getElementById('daily-pain-chart');
+  container.innerHTML = '';
+  const days = 30;
+  const today = new Date();
+  const dayMap = {};
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (days - 1 - i));
+    dayMap[d.toISOString().split('T')[0]] = { total: 0, count: 0 };
+  }
+  entries.forEach(e => {
+    if (dayMap[e.date]) {
+      dayMap[e.date].total += (e.pain || 0);
+      dayMap[e.date].count++;
+    }
+  });
+  const vals = Object.values(dayMap);
+  const maxVal = Math.max(...vals.map(v => v.count > 0 ? v.total / v.count : 0), 1);
+  const keys = Object.keys(dayMap);
+  keys.forEach((date, i) => {
+    const { total, count } = dayMap[date];
+    const avg = count > 0 ? total / count : 0;
+    const bar = document.createElement('div');
+    const heightPct = avg > 0 ? Math.max(4, Math.round((avg / maxVal) * 100)) : 2;
+    const opacity = count > 0 ? 0.4 + 0.6 * (avg / 5) : 0.08;
+    bar.style.cssText = `flex:1;height:${heightPct}%;background:var(--accent);opacity:${opacity};border-radius:2px 2px 0 0;cursor:default;transition:opacity .15s;`;
+    bar.title = count > 0 ? `${date}: ${count} anfall, snitt styrke ${(avg).toFixed(1)}` : date;
+    container.appendChild(bar);
+  });
+  const startDate = keys[0] ? keys[0].slice(5) : '';
+  const endDate = keys[keys.length-1] ? keys[keys.length-1].slice(5) : '';
+  document.getElementById('daily-pain-start').textContent = startDate;
+  document.getElementById('daily-pain-end').textContent = endDate;
 }
 
 function renderHeatmap(hourCounts) {
