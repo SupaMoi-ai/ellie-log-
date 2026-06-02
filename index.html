@@ -591,7 +591,7 @@
     line-height: 1;
   }
   .del-btn:hover { color: var(--pain-severe); }
-  .edit-btn { background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1; }
+  .edit-btn { background:none;border:none;color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 6px;border-radius:4px;line-height:1;margin-bottom:6px; }
   .edit-btn:hover { color: var(--accent); }
 
   /* EMPTY STATE */
@@ -1206,6 +1206,15 @@
 
 <!-- HISTORY PANEL -->
 <div class="panel" id="panel-history">
+
+  <!-- LOGGINGSFREMDRIFT -->
+  <div id="progress-bar" style="margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;">Loggingsfremdrift</div>
+    <div id="progress-milestones" style="display:flex;align-items:flex-start;gap:0;position:relative;">
+      <!-- filled by renderProgress() -->
+    </div>
+  </div>
+
   <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
     <button onclick="copyDoctorReport()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.5px;">Kopier rapport til legen</button>
   </div>
@@ -1382,6 +1391,43 @@
       </div>
 
       <div class="findings-note">Ta alltid med noe herfra til Dr. Mero før dere endrer noe.</div>
+    </div>
+
+    <!-- SISTE NYTT -->
+    <div style="margin-top:28px;">
+      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Siste nytt</div>
+      <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);margin-bottom:4px;">Forskning &amp; medisiner</div>
+      <div style="font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:16px;">Det skjer mer på dette feltet nå enn på lenge.</div>
+      <div id="news-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div style="margin-top:18px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;">Kilde: SMART-MD Journal of Precision Medicine, 2026</div>
+    </div>
+
+    <!-- LOGGINGSGUIDE -->
+    <div style="margin-top:28px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;">
+      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;">Loggingsguide</div>
+      <div style="font-family:var(--font-serif);font-size:18px;color:var(--text);margin-bottom:14px;">Fem milepæler for loggingen</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="min-width:28px;height:28px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;font-weight:600;color:#2e7d32;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">1 anfall — du er i gang</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Det første er det viktigste. Nå finnes det data.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="min-width:28px;height:28px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;font-weight:600;color:#2e7d32;flex-shrink:0;">10</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">10 anfall — første mønstre trer frem</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Nok til å se hva som utløser, hva som hjelper, og når på døgnet det skjer.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="min-width:28px;height:28px;border-radius:50%;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:#e65100;flex-shrink:0;">6u</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">6 uker — klinisk baseline</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Standarden kliniske studier bruker for å fastslå et utgangspunkt. Her kan dere si noe konkret til Dr. Mero.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="min-width:28px;height:28px;border-radius:50%;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:#e65100;flex-shrink:0;">3m</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">3 måneder — ekte mønstre skiller seg ut</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Her skilles tilfeldige variasjoner fra ekte mønstre. Sesong, medisin og utvikling over tid blir synlig.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="min-width:28px;height:28px;border-radius:50%;background:#f3e5f5;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:#6a1b9a;flex-shrink:0;">6m</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">6 måneder — forskningsmessig styrke</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Nok til publikasjon. Seks måneder med loggdata fra tre generasjoner er internasjonalt unikt for FEPS3.</div></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -1593,6 +1639,51 @@ function resetForm() {
 // ---- RENDER ----
 function renderAll() {
   document.getElementById('total-entries').textContent = entries.length;
+  renderProgress();
+}
+
+function renderProgress() {
+  const total = entries.length;
+  let spanDays = 0;
+  if (total >= 2) {
+    const dates = entries.map(e => new Date(e.date)).filter(d => !isNaN(d));
+    if (dates.length >= 2) {
+      const earliest = new Date(Math.min(...dates));
+      const latest   = new Date(Math.max(...dates));
+      spanDays = Math.round((latest - earliest) / 86400000);
+    }
+  }
+
+  const milestones = [
+    { label: '1 anfall',  short: '1',   reached: total >= 1,    tip: '1 anfall logget' },
+    { label: '10 anfall', short: '10',  reached: total >= 10,   tip: `${total}/10 anfall` },
+    { label: '6 uker',    short: '6u',  reached: spanDays >= 42, tip: `${spanDays}/42 dager` },
+    { label: '3 mnd',     short: '3m',  reached: spanDays >= 90, tip: `${spanDays}/90 dager` },
+    { label: '6 mnd',     short: '6m',  reached: spanDays >= 180,tip: `${spanDays}/180 dager` },
+  ];
+
+  // find the current (amber) milestone index — first not-yet-reached
+  const currentIdx = milestones.findIndex(m => !m.reached);
+
+  const container = document.getElementById('progress-milestones');
+  if (!container) return;
+
+  container.innerHTML = milestones.map((m, i) => {
+    const done    = m.reached;
+    const current = !done && i === currentIdx;
+    const bgColor    = done ? '#4e8e6c' : current ? '#c08440' : 'var(--surface2)';
+    const textColor  = done || current ? '#fff' : 'var(--text-muted)';
+    const labelColor = done ? '#4e8e6c' : current ? '#c08440' : 'var(--text-muted)';
+    const lineColor  = done ? '#4e8e6c' : 'var(--border)';
+    const isLast = i === milestones.length - 1;
+
+    return `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
+        ${!isLast ? `<div style="position:absolute;top:14px;left:50%;right:-50%;height:2px;background:${lineColor};z-index:0;"></div>` : ''}
+        <div title="${m.tip}" style="width:28px;height:28px;border-radius:50%;background:${bgColor};display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:${textColor};position:relative;z-index:1;flex-shrink:0;">${done ? '✓' : m.short}</div>
+        <div style="margin-top:5px;font-family:var(--font-mono);font-size:8px;color:${labelColor};text-align:center;line-height:1.3;">${m.label}</div>
+      </div>`;
+  }).join('');
 }
 
 function renderHistory() {
@@ -1891,6 +1982,39 @@ function importData() {
     reader.readAsText(e.target.files[0]);
   };
   input.click();
+}
+
+// ---- NEWS CARDS ----
+(function initNews() {
+  const news = [
+    { id:1, tag:'Ny medisin',       tagBg:'#e8f5e9', tagColor:'#2e7d32', date:'2026', title:'Suzetrigine — godkjent', body:'En ny smertemedisin kalt suzetrigine er nylig godkjent. Den virker ved å dempe de samme smertesignalene som er involvert i Ellies diagnose. Den er foreløpig godkjent for akutt smerte, men forskere ser nå på om den kan hjelpe ved langvarig smerte.' },
+    { id:2, tag:'Under utvikling',  tagBg:'#fff3e0', tagColor:'#e65100', date:'2026', title:'ANP-230 — lover godt',   body:'ANP-230 er en medisin under utvikling som blokkerer Nav1.7, Nav1.8 og Nav1.9 — de tre kanalene som er direkte involvert i Ellies smertetilstand (FEPS3/SCN11A). Tidlige tester viser god smertelindrende effekt. Den er ikke klar for bruk ennå, men er et av de mest lovende sporene akkurat nå.' },
+    { id:3, tag:'Forskning',        tagBg:'#e3f2fd', tagColor:'#1565c0', date:'2026', title:'Nav1.9 forstås bedre enn noen gang', body:'I mange år var Nav1.9-kanalen vanskelig å studere. Nå har forskere nye metoder som gjør det mulig å teste varianter og medisiner mye mer presist. FEPS3 regnes nå som den klassiske Nav1.9-sykdommen, og mekanismen bak er langt bedre forstått enn da Ellie ble utredet.' },
+    { id:4, tag:'Vår familie',      tagBg:'#f3e5f5', tagColor:'#6a1b9a', date:'2026', title:'Tre generasjoner — verdifull forskning', body:'Familier med tre generasjoner som deler samme variant (p.Ser697Pro) er svært sjeldne og verdifulle for forskningsmiljøet. Det er nå realistisk å få Ellies variant funksjonelt undersøkt, og å bidra til forskning som kan hjelpe andre med samme tilstand.' },
+  ];
+
+  const container = document.getElementById('news-list');
+  if (!container) return;
+
+  container.innerHTML = news.map(item => `
+    <div onclick="toggleNews(${item.id})" style="background:#fff;border:1px solid #efefeb;border-radius:14px;padding:16px 18px;cursor:pointer;transition:box-shadow 0.2s;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${item.tagBg};color:${item.tagColor};font-family:var(--font-mono);letter-spacing:0.05em;">${item.tag}</span>
+        <span style="font-size:11px;color:#bbb;font-family:var(--font-mono);">${item.date}</span>
+      </div>
+      <p style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 4px;line-height:1.3;">${item.title}</p>
+      <div id="news-body-${item.id}" style="display:none;font-size:13px;color:var(--text-dim);line-height:1.65;margin:10px 0 6px;">${item.body}</div>
+      <p id="news-toggle-${item.id}" style="font-size:11px;color:#aaa;margin:4px 0 0;font-family:var(--font-mono);">Les mer ↓</p>
+    </div>`).join('');
+})();
+
+function toggleNews(id) {
+  const body   = document.getElementById('news-body-' + id);
+  const toggle = document.getElementById('news-toggle-' + id);
+  if (!body) return;
+  const open = body.style.display === 'block';
+  body.style.display   = open ? 'none' : 'block';
+  toggle.textContent   = open ? 'Les mer ↓' : 'Lukk ↑';
 }
 
 // ---- PLAN COPY ----
