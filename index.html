@@ -591,6 +591,8 @@
     line-height: 1;
   }
   .del-btn:hover { color: var(--pain-severe); }
+  .edit-btn { background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1; }
+  .edit-btn:hover { color: var(--accent); }
 
   /* EMPTY STATE */
   .empty {
@@ -912,6 +914,124 @@
   </div>
 </div>
 
+<div id="edit-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);overflow-y:auto;padding:24px;">
+  <div style="max-width:640px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="font-family:var(--font-serif);font-size:26px;margin:0;color:var(--text);">Rediger <span style="font-style:italic;color:var(--accent);">anfall</span></h2>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:26px;color:var(--text-muted);cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Når</div>
+      <div class="row">
+        <div class="field"><label>Dato</label><input type="date" id="e-date"></div>
+        <div class="field"><label>Starttid</label><input type="time" id="e-time"></div>
+        <div class="field"><label>Varighet (minutter)</label><input type="number" id="e-duration" placeholder="e.g. 30" min="1" max="300"></div>
+        <div class="field"><label>Søvn</label>
+          <select id="e-sleep">
+            <option value="">Velg...</option>
+            <option value="asleep">Våknet av smerten</option>
+            <option value="falling-asleep">Holdt på å sovne</option>
+            <option value="awake-day">Våken – dagtid</option>
+            <option value="awake-evening">Våken – kveld</option>
+            <option value="nap">Under/etter blund</option>
+          </select>
+        </div>
+        <div class="field"><label>Logget av</label>
+          <select id="e-logged-by">
+            <option value="">Velg...</option>
+            <option value="Ellie">Ellie</option>
+            <option value="Mamma">Mamma</option>
+            <option value="Pappa">Pappa</option>
+            <option value="Bestemor">Bestemor</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Hvor vondt (styrke)</div>
+      <div class="pain-scale" id="edit-pain-scale">
+        <button class="pain-btn" onclick="setEditPain(1)"><span class="num">1</span>Litt</button>
+        <button class="pain-btn" onclick="setEditPain(2)"><span class="num">2</span>Lett</button>
+        <button class="pain-btn" onclick="setEditPain(3)"><span class="num">3</span>Middels</button>
+        <button class="pain-btn" onclick="setEditPain(4)"><span class="num">4</span>Sterkt</button>
+        <button class="pain-btn" onclick="setEditPain(5)"><span class="num">5</span>Verst</button>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Sted på kroppen</div>
+      <div class="chips" id="edit-chips-location">
+        <span class="chip" onclick="toggleEditChip(this,'location')">Venstre kne</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Høyre kne</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Venstre fot</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Høyre fot</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Venstre legg</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Høyre legg</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Venstre hånd</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Høyre hånd</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Armer</span>
+        <span class="chip" onclick="toggleEditChip(this,'location')">Hele kroppen</span>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Hvordan det startet</div>
+      <div class="chips" id="edit-chips-onset">
+        <span class="chip" onclick="toggleEditChip(this,'onset')">Kribling/prikking</span>
+        <span class="chip" onclick="toggleEditChip(this,'onset')">Plutselig smerte</span>
+        <span class="chip" onclick="toggleEditChip(this,'onset')">Uro</span>
+        <span class="chip" onclick="toggleEditChip(this,'onset')">Gråt</span>
+        <span class="chip" onclick="toggleEditChip(this,'onset')">Fra søvn</span>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Mulige utløsere (siste timene)</div>
+      <div class="chips" id="edit-chips-triggers">
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Kulde</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Lenge siden mat</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Værforandring</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Veldig aktiv dag</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Trøtt/sliten</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Stresset/lei seg</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Kald mat/drikke</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Bading/svømming</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Sykdom/feber</span>
+        <span class="chip" onclick="toggleEditChip(this,'triggers')">Ingen tydelig utløser</span>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Vær</div>
+      <div class="chips" id="edit-chips-weather">
+        <span class="chip" onclick="toggleEditChip(this,'weather')">☀️ Sunny/warm</span>
+        <span class="chip" onclick="toggleEditChip(this,'weather')">🌧️ Rain</span>
+        <span class="chip" onclick="toggleEditChip(this,'weather')">🌨️ Cold/frost</span>
+        <span class="chip" onclick="toggleEditChip(this,'weather')">🌬️ Windy</span>
+        <span class="chip" onclick="toggleEditChip(this,'weather')">⛅ Changing</span>
+        <span class="chip" onclick="toggleEditChip(this,'weather')">🌫️ Overcast</span>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Hva som hjalp</div>
+      <div class="chips" id="edit-chips-relief">
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Paracet</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Ibux</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Lamictal (dose)</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Varme/varmepute</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Forsiktig massasje</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Avledning</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Bare tid</span>
+        <span class="chip" onclick="toggleEditChip(this,'relief')">Ingenting hjalp</span>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">Notater</div>
+      <div class="field"><textarea id="e-notes" placeholder="Noe annet – hva hun sa, hvordan hun så ut..."></textarea></div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px;padding-bottom:32px;">
+      <button class="submit-btn" onclick="saveEditEntry()" style="flex:1;">Lagre endringer →</button>
+      <button onclick="closeEditModal()" style="flex:0 0 auto;padding:18px 24px;background:none;border:1px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:13px;color:var(--text-dim);cursor:pointer;">Avbryt</button>
+    </div>
+  </div>
+</div>
+
 <header>
   <div class="header-title">
     <h1>Ellie's <span>smertelogg</span></h1>
@@ -964,6 +1084,16 @@
             <option value="awake-day">Våken – dagtid</option>
             <option value="awake-evening">Våken – kveld</option>
             <option value="nap">Under/etter blund</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Logget av</label>
+          <select id="f-logged-by">
+            <option value="">Velg...</option>
+            <option value="Ellie">Ellie</option>
+            <option value="Mamma">Mamma</option>
+            <option value="Pappa">Pappa</option>
+            <option value="Bestemor">Bestemor</option>
           </select>
         </div>
       </div>
@@ -1062,6 +1192,9 @@
 
 <!-- HISTORY PANEL -->
 <div class="panel" id="panel-history">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button onclick="copyDoctorReport()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.5px;">Kopier rapport til legen</button>
+  </div>
   <div class="log-list" id="history-list">
     <div class="empty"><div class="empty-icon">📋</div>Ingen anfall logget ennå.<br>Begynn under «Logg anfall».</div>
   </div>
@@ -1317,6 +1450,9 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let entries = [];
 let selectedPain = 0;
 const chipState = { location:[], onset:[], triggers:[], weather:[], relief:[] };
+let editingId = null;
+let editPain = 0;
+const editChipState = { location:[], onset:[], triggers:[], weather:[], relief:[] };
 
 // ---- INIT ----
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1399,13 +1535,14 @@ async function saveEntry() {
   const duration = parseInt(document.getElementById('f-duration').value) || null;
   const sleep = document.getElementById('f-sleep').value;
   const notes = document.getElementById('f-notes').value.trim();
+  const logged_by = document.getElementById('f-logged-by').value || null;
 
   if (!date || !time) { showToast('Fyll inn dato og tid'); return; }
   if (!selectedPain) { showToast('Velg hvor vondt det var'); return; }
 
   const entry = {
     id: Date.now(),
-    date, time, duration, sleep,
+    date, time, duration, sleep, logged_by,
     pain: selectedPain,
     location: [...chipState.location],
     onset: [...chipState.onset],
@@ -1430,6 +1567,7 @@ function resetForm() {
   document.getElementById('f-duration').value = '';
   document.getElementById('f-sleep').value = '';
   document.getElementById('f-notes').value = '';
+  document.getElementById('f-logged-by').value = '';
   selectedPain = 0;
   document.querySelectorAll('.pain-btn').forEach(b => b.className = 'pain-btn');
   ['location','onset','triggers','weather','relief'].forEach(g => {
@@ -1468,6 +1606,8 @@ function renderHistory() {
       </div>
       <div class="log-intensity">
         <div class="intensity-dot intensity-${e.pain}">${e.pain}</div>
+        ${e.logged_by ? `<div style="font-family:var(--font-mono);font-size:8px;color:var(--accent);text-align:center;margin-bottom:2px;">${e.logged_by}</div>` : ''}
+        <button class="edit-btn" onclick="openEditModal(${e.id})" title="Rediger">✎</button>
         <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
       </div>
     </div>`;
@@ -1600,6 +1740,105 @@ async function deleteEntry(id) {
   entries = entries.filter(e => e.id !== id);
   renderHistory();
   renderAll();
+}
+
+// ---- EDIT ENTRY ----
+function openEditModal(id) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+  editingId = id;
+  document.getElementById('e-date').value     = entry.date     || '';
+  document.getElementById('e-time').value     = entry.time     || '';
+  document.getElementById('e-duration').value = entry.duration || '';
+  document.getElementById('e-sleep').value    = entry.sleep    || '';
+  document.getElementById('e-notes').value    = entry.notes    || '';
+  document.getElementById('e-logged-by').value = entry.logged_by || '';
+  setEditPain(entry.pain || 0);
+  ['location','onset','triggers','weather','relief'].forEach(group => {
+    editChipState[group] = [...(entry[group] || [])];
+    document.querySelectorAll(`#edit-chips-${group} .chip`).forEach(chip => {
+      chip.classList.toggle('active', editChipState[group].includes(chip.textContent.trim()));
+    });
+  });
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+function closeEditModal() {
+  editingId = null;
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+function setEditPain(val) {
+  editPain = val;
+  document.querySelectorAll('#edit-pain-scale .pain-btn').forEach((b, i) => {
+    b.className = 'pain-btn' + (i + 1 === val ? ' selected-' + val : '');
+  });
+}
+
+function toggleEditChip(el, group) {
+  el.classList.toggle('active');
+  const val = el.textContent.trim();
+  const arr = editChipState[group];
+  const idx = arr.indexOf(val);
+  if (idx > -1) arr.splice(idx, 1); else arr.push(val);
+}
+
+async function saveEditEntry() {
+  if (!editingId) return;
+  const date     = document.getElementById('e-date').value;
+  const time     = document.getElementById('e-time').value;
+  const duration = parseInt(document.getElementById('e-duration').value) || null;
+  const sleep    = document.getElementById('e-sleep').value;
+  const notes    = document.getElementById('e-notes').value.trim();
+  const logged_by = document.getElementById('e-logged-by').value || null;
+  if (!date || !time) { showToast('Fyll inn dato og tid'); return; }
+  if (!editPain)      { showToast('Velg hvor vondt det var'); return; }
+  const changes = {
+    date, time, duration, sleep, notes, logged_by,
+    pain: editPain,
+    location: [...editChipState.location],
+    onset:    [...editChipState.onset],
+    triggers: [...editChipState.triggers],
+    weather:  [...editChipState.weather],
+    relief:   [...editChipState.relief]
+  };
+  const { error } = await sb.from('entries').update(changes).eq('id', editingId);
+  if (error) { showToast('Oppdatering feilet'); return; }
+  const idx = entries.findIndex(e => e.id === editingId);
+  if (idx > -1) entries[idx] = { ...entries[idx], ...changes };
+  closeEditModal();
+  renderHistory();
+  renderAll();
+  showToast('Anfall oppdatert ✓');
+}
+
+// ---- DOCTOR REPORT ----
+function copyDoctorReport() {
+  if (!entries.length) { showToast('Ingen anfall å eksportere'); return; }
+  const recent = entries.slice(0, 30);
+  const lines = recent.map(e => {
+    return [
+      `${e.date} ${e.time}`,
+      `Smerte: ${e.pain}/5`,
+      e.duration  ? `Varighet: ${e.duration} min` : null,
+      e.triggers?.length ? `Utløsere: ${e.triggers.join(', ')}` : null,
+      e.location?.length ? `Sted: ${e.location.join(', ')}` : null,
+      e.relief?.length   ? `Hjalp: ${e.relief.join(', ')}` : null,
+      e.logged_by ? `Logget av: ${e.logged_by}` : null,
+      e.notes     ? `Notat: ${e.notes}` : null
+    ].filter(Boolean).join(' · ');
+  });
+  const text = `Ellie – smertelogg (siste ${recent.length} anfall)\n${'─'.repeat(44)}\n` + lines.join('\n');
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('Kopiert til utklippstavle ✓'));
+  } else {
+    const ta = document.getElementById('plan-text-source');
+    const prev = ta.value; ta.value = text;
+    ta.style.cssText = 'position:fixed;left:0;top:0;opacity:0;';
+    ta.select(); ta.setSelectionRange(0, 99999);
+    try { document.execCommand('copy'); showToast('Kopiert til utklippstavle ✓'); } catch(_) {}
+    ta.value = prev; ta.style.cssText = 'position:absolute;left:-9999px;';
+  }
 }
 
 function showToast(msg) {
