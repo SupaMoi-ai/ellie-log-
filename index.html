@@ -1616,7 +1616,6 @@ async function saveEntry() {
 
   const now = new Date();
   const entry = {
-    id: Date.now(),
     date: date || now.toISOString().split('T')[0],
     time: time || now.toTimeString().slice(0,5),
     duration, sleep, logged_by,
@@ -1629,9 +1628,9 @@ async function saveEntry() {
     notes
   };
 
-  const { error } = await sb.from('entries').insert(entry);
+  const { data: inserted, error } = await sb.from('entries').insert(entry).select().single();
   if (error) { console.error('Supabase insert error:', error); showToast('Lagring feilet: ' + error.message); return; }
-  entries.unshift(entry);
+  entries.unshift(inserted);
   resetForm();
   renderAll();
   showToast('Anfall lagret ✓');
