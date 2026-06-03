@@ -1615,6 +1615,7 @@ async function saveEntry() {
 
   const now = new Date();
   const entry = {
+    id: Date.now(),
     date: date || now.toISOString().split('T')[0],
     time: time || now.toTimeString().slice(0,5),
     duration, sleep,
