@@ -1144,11 +1144,6 @@
       <div class="section-label">VÆR — AUTOMATISK</div>
       <div id="wx-status" style="padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.5;">Henter posisjon…</div>
       <div id="wx-warn" style="display:none;font-family:var(--font-mono);font-size:11px;color:#c0392b;margin-bottom:6px;padding:6px 10px;background:#fdf2f2;border-radius:6px;"></div>
-      <div id="wx-legend" style="display:none;font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-bottom:6px;line-height:1.6;">
-        <span title="Grader celsius — lufttemperatur ute">°C = temperatur</span> &nbsp;·&nbsp;
-        <span title="Hectopascal — mål på lufttrykk. Normalt ~1013 hPa. Under 1000 = lavtrykk.">hPa = lufttrykk (normalt ~1013)</span> &nbsp;·&nbsp;
-        <span title="Meter per sekund — vindstyrke. 5 m/s = svak bris, 10+ = sterk vind.">m/s = vindstyrke</span>
-      </div>
       <div id="wx-note" style="display:none;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:4px;">📍 Appen bruker telefonens GPS og henter værdata fra Open-Meteo — europeisk værtjeneste basert på samme modell som YR. Koordinatene forlater ikke appen og lagres ikke eksternt.</div>
     </div>
     <div class="form-section">
@@ -1255,12 +1250,12 @@
       <div class="insight-card">
         <div class="ins-label">Snitt temp</div>
         <div class="ins-val" id="stat-avg-temp">—</div>
-        <div class="ins-sub" id="stat-avg-temp-sub">grader celsius ute</div>
+        <div class="ins-sub" id="stat-avg-temp-sub">°C ved anfall</div>
       </div>
       <div class="insight-card">
         <div class="ins-label">Snitt trykk</div>
         <div class="ins-val" id="stat-avg-pressure">—</div>
-        <div class="ins-sub" id="stat-avg-pressure-sub">lufttrykk (hPa) · normalt ~1013</div>
+        <div class="ins-sub" id="stat-avg-pressure-sub">hPa ved anfall</div>
       </div>
     </div>
 
@@ -1655,8 +1650,6 @@ function resetForm() {
   if (wxWarn) wxWarn.style.display = 'none';
   const wxNote = document.getElementById('wx-note');
   if (wxNote) wxNote.style.display = 'none';
-  const wxLegend = document.getElementById('wx-legend');
-  if (wxLegend) wxLegend.style.display = 'none';
 }
 
 // ---- RENDER ----
@@ -2079,33 +2072,29 @@ async function fetchWeather() {
 }
 
 function renderWxBox() {
-  const box    = document.getElementById('wx-status');
-  const warn   = document.getElementById('wx-warn');
-  const note   = document.getElementById('wx-note');
-  const legend = document.getElementById('wx-legend');
+  const box  = document.getElementById('wx-status');
+  const warn = document.getElementById('wx-warn');
+  const note = document.getElementById('wx-note');
   if (!box || !currentWx) return;
   box.textContent = `${currentWx.temp}° · ${currentWx.pressure} hPa · ${currentWx.desc} · Vind ${currentWx.wind} m/s · hentet ${currentWx.fetchedAt}`;
   box.style.color = 'var(--text)';
   if (warn) {
     if (currentWx.pressure < 1000) {
-      warn.textContent = `⚠️ Lavtrykk (${currentWx.pressure} hPa — lufttrykket er under normalen på ~1013). Trykkfall er dokumentert utløser for Ellies smertetilstand.`;
+      warn.textContent = `⚠️ Lavtrykk (${currentWx.pressure} hPa) — trykkfall er dokumentert FEPS3-utløser`;
       warn.style.display = 'block';
     } else { warn.style.display = 'none'; }
   }
-  if (legend) legend.style.display = 'block';
   if (note) note.style.display = 'block';
 }
 
 function setWxError() {
   currentWx = null;
-  const box    = document.getElementById('wx-status');
-  const warn   = document.getElementById('wx-warn');
-  const note   = document.getElementById('wx-note');
-  const legend = document.getElementById('wx-legend');
-  if (box)    { box.textContent = 'Vær ikke tilgjengelig — velg manuelt nedenfor'; box.style.color = 'var(--text-muted)'; }
-  if (warn)   warn.style.display = 'none';
-  if (note)   note.style.display = 'none';
-  if (legend) legend.style.display = 'none';
+  const box  = document.getElementById('wx-status');
+  const warn = document.getElementById('wx-warn');
+  const note = document.getElementById('wx-note');
+  if (box)  { box.textContent = 'Vær ikke tilgjengelig — velg manuelt nedenfor'; box.style.color = 'var(--text-muted)'; }
+  if (warn) warn.style.display = 'none';
+  if (note) note.style.display = 'none';
 }
 
 async function backfillWeather() {
