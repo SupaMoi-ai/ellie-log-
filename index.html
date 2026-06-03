@@ -1188,7 +1188,8 @@
     </div>
   </div>
 
-  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+    <button id="backfill-btn" onclick="backfillWeather()" style="display:none;background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.5px;">Fyll inn historisk vær</button>
     <button onclick="copyDoctorReport()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.5px;">Kopier rapport til legen</button>
   </div>
   <div class="log-list" id="history-list">
@@ -1726,6 +1727,8 @@ function renderHistory() {
       </div>
     </div>`;
   }).join('');
+  const btn = document.getElementById('backfill-btn');
+  if (btn) btn.style.display = entries.some(e => !e.wx) ? 'inline-block' : 'none';
 }
 
 function renderPatterns() {
@@ -2086,6 +2089,102 @@ function setWxError() {
   if (box)  { box.textContent = 'Vær ikke tilgjengelig — velg manuelt nedenfor'; box.style.color = 'var(--text-muted)'; }
   if (warn) warn.style.display = 'none';
   if (note) note.style.display = 'none';
+}
+
+async function backfillWeather() {
+  const btn = document.getElementById('backfill-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Henter posisjon…'; }
+
+  // 1. GPS-koordinater
+  let lat, lon;
+  const cached = sessionStorage.getItem('wx-coords');
+  if (cached) {
+    ({ lat, lon } = JSON.parse(cached));
+  } else {
+    try {
+      const pos = await new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('timeout')), 8000);
+        navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res(p); }, rej, { timeout: 8000 });
+      });
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+      sessionStorage.setItem('wx-coords', JSON.stringify({ lat, lon }));
+    } catch {
+      showToast('Kunne ikke hente posisjon');
+      if (btn) { btn.disabled = false; btn.textContent = 'Fyll inn historisk vær'; }
+      return;
+    }
+  }
+
+  // 2. Finn entries uten wx
+  const toBackfill = entries.filter(e => !e.wx);
+  if (!toBackfill.length) {
+    showToast('Alle anfall har allerede værdata');
+    if (btn) { btn.disabled = false; }
+    return;
+  }
+
+  // 3. Grupper etter dato
+  const dateMap = {};
+  toBackfill.forEach(e => { (dateMap[e.date] = dateMap[e.date] || []).push(e); });
+
+  let done = 0;
+  let skipped = 0;
+
+  for (const date of Object.keys(dateMap)) {
+    if (btn) btn.textContent = `Oppdaterer ${done}/${toBackfill.length}…`;
+    try {
+      const r = await fetch(
+        `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,surface_pressure,weather_code,wind_speed_10m&timezone=auto`
+      );
+      const d = await r.json();
+      const times = d.hourly.time;       // ["2024-01-15T00:00", ...]
+      const temps = d.hourly.temperature_2m;
+      const pressures = d.hourly.surface_pressure;
+      const codes = d.hourly.weather_code;
+      const winds = d.hourly.wind_speed_10m;
+
+      for (const entry of dateMap[date]) {
+        // Find closest hour index
+        const entryHour = parseInt(entry.time.split(':')[0]);
+        let bestIdx = 0;
+        let bestDiff = 99;
+        times.forEach((t, i) => {
+          const h = parseInt(t.split('T')[1].split(':')[0]);
+          const diff = Math.abs(h - entryHour);
+          if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+        });
+
+        const wx = {
+          temp:      Math.round(temps[bestIdx] * 10) / 10,
+          pressure:  Math.round(pressures[bestIdx] * 10) / 10,
+          code:      codes[bestIdx],
+          desc:      WMO[codes[bestIdx]] || 'Ukjent',
+          wind:      Math.round(winds[bestIdx] * 10) / 10,
+          fetchedAt: entry.time
+        };
+
+        const { error } = await sb.from('entries').update({ wx }).eq('id', entry.id);
+        if (error) { console.error('backfill update error', entry.id, error); skipped++; continue; }
+
+        const idx = entries.findIndex(e => e.id === entry.id);
+        if (idx > -1) entries[idx].wx = wx;
+        done++;
+        if (btn) btn.textContent = `Oppdaterer ${done}/${toBackfill.length}…`;
+      }
+    } catch (err) {
+      console.error('backfill fetch error for date', date, err);
+      skipped += dateMap[date].length;
+    }
+  }
+
+  renderHistory();
+  renderAll();
+  const msg = skipped
+    ? `Vær lagt til for ${done} anfall (${skipped} hoppet over)`
+    : `Historisk vær lagt til for ${done} anfall ✓`;
+  showToast(msg);
+  if (btn) { btn.disabled = false; btn.textContent = 'Fyll inn historisk vær'; }
 }
 
 function showToast(msg) {
