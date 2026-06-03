@@ -2076,7 +2076,14 @@ function renderWxBox() {
   const warn = document.getElementById('wx-warn');
   const note = document.getElementById('wx-note');
   if (!box || !currentWx) return;
-  box.textContent = `${currentWx.temp}° · ${currentWx.pressure} hPa · ${currentWx.desc} · Vind ${currentWx.wind} m/s · hentet ${currentWx.fetchedAt}`;
+  box.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;">
+      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">TEMPERATUR</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.temp}°</div></div>
+      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">LUFTTRYKK</div><div style="font-size:14px;color:${currentWx.pressure < 1000 ? '#c0392b' : 'var(--text)'};font-weight:500;">${currentWx.pressure} hPa</div></div>
+      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">VÆR</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.desc}</div></div>
+      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">VIND</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.wind} m/s</div></div>
+    </div>
+    <div style="margin-top:6px;font-size:9px;color:var(--text-muted);">hentet ${currentWx.fetchedAt}</div>`;
   box.style.color = 'var(--text)';
   if (warn) {
     if (currentWx.pressure < 1000) {
