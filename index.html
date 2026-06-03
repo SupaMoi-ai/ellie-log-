@@ -1604,7 +1604,6 @@ async function saveEntry() {
   const duration = parseInt(document.getElementById('f-duration').value) || null;
   const sleep = document.getElementById('f-sleep').value;
   const notes = document.getElementById('f-notes').value.trim();
-  const logged_by = document.getElementById('f-logged-by').value || null;
 
   const missing = [];
   if (!date || !time) missing.push('dato og tid');
@@ -1618,7 +1617,7 @@ async function saveEntry() {
   const entry = {
     date: date || now.toISOString().split('T')[0],
     time: time || now.toTimeString().slice(0,5),
-    duration, sleep, logged_by,
+    duration, sleep,
     pain: selectedPain || 0,
     location: [...chipState.location],
     onset: [...chipState.onset],
@@ -1728,7 +1727,6 @@ function renderHistory() {
       </div>
       <div class="log-intensity">
         <div class="intensity-dot intensity-${e.pain}">${e.pain}</div>
-        ${e.logged_by ? `<div style="font-family:var(--font-mono);font-size:8px;color:var(--accent);text-align:center;margin-bottom:2px;">${e.logged_by}</div>` : ''}
         <button class="edit-btn" onclick="openEditModal(${e.id})" title="Rediger">✎</button>
         <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
       </div>
@@ -1913,7 +1911,6 @@ function openEditModal(id) {
   document.getElementById('e-duration').value = entry.duration || '';
   document.getElementById('e-sleep').value    = entry.sleep    || '';
   document.getElementById('e-notes').value    = entry.notes    || '';
-  document.getElementById('e-logged-by').value = entry.logged_by || '';
   setEditPain(entry.pain || 0);
   ['location','onset','triggers','weather','relief'].forEach(group => {
     editChipState[group] = [...(entry[group] || [])];
@@ -1951,11 +1948,10 @@ async function saveEditEntry() {
   const duration = parseInt(document.getElementById('e-duration').value) || null;
   const sleep    = document.getElementById('e-sleep').value;
   const notes    = document.getElementById('e-notes').value.trim();
-  const logged_by = document.getElementById('e-logged-by').value || null;
   if (!date || !time) { showToast('Fyll inn dato og tid'); return; }
   if (!editPain)      { showToast('Velg hvor vondt det var'); return; }
   const changes = {
-    date, time, duration, sleep, notes, logged_by,
+    date, time, duration, sleep, notes,
     pain: editPain,
     location: [...editChipState.location],
     onset:    [...editChipState.onset],
@@ -1985,7 +1981,6 @@ function copyDoctorReport() {
       e.triggers?.length ? `Utløsere: ${e.triggers.join(', ')}` : null,
       e.location?.length ? `Sted: ${e.location.join(', ')}` : null,
       e.relief?.length   ? `Hjalp: ${e.relief.join(', ')}` : null,
-      e.logged_by ? `Logget av: ${e.logged_by}` : null,
       e.notes     ? `Notat: ${e.notes}` : null
     ].filter(Boolean).join(' · ');
   });
