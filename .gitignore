@@ -1,2 +1,4 @@
 .DS_Store
 newest/
+node_modules/
+package-lock.json
