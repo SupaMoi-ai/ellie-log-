@@ -936,22 +936,6 @@
             <option value="nap">Under/etter blund</option>
           </select>
         </div>
-        <div class="field"><label>Logget av</label>
-          <select id="e-logged-by">
-            <option value="">Velg...</option>
-            <option value="Pappa">Pappa</option>
-            <option value="Mamma">Mamma</option>
-            <option value="Sisilie">Sisilie</option>
-            <option value="Farmor">Farmor</option>
-            <option value="Farfar">Farfar</option>
-            <option value="Mormor">Mormor</option>
-            <option value="Morfar">Morfar</option>
-            <option value="Bestemor">Bestemor</option>
-            <option value="Tante">Tante</option>
-            <option value="Onkel">Onkel</option>
-            <option value="Ellie">Ellie selv</option>
-          </select>
-        </div>
       </div>
     </div>
     <div class="form-section">
@@ -1091,23 +1075,6 @@
             <option value="awake-day">Våken – dagtid</option>
             <option value="awake-evening">Våken – kveld</option>
             <option value="nap">Under/etter blund</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Logget av</label>
-          <select id="f-logged-by">
-            <option value="">Velg...</option>
-            <option value="Pappa">Pappa</option>
-            <option value="Mamma">Mamma</option>
-            <option value="Sisilie">Sisilie</option>
-            <option value="Farmor">Farmor</option>
-            <option value="Farfar">Farfar</option>
-            <option value="Mormor">Mormor</option>
-            <option value="Morfar">Morfar</option>
-            <option value="Bestemor">Bestemor</option>
-            <option value="Tante">Tante</option>
-            <option value="Onkel">Onkel</option>
-            <option value="Ellie">Ellie selv</option>
           </select>
         </div>
       </div>
@@ -1644,7 +1611,6 @@ function resetForm() {
   document.getElementById('f-duration').value = '';
   document.getElementById('f-sleep').value = '';
   document.getElementById('f-notes').value = '';
-  document.getElementById('f-logged-by').value = '';
   selectedPain = 0;
   document.querySelectorAll('.pain-btn').forEach(b => b.className = 'pain-btn');
   ['location','onset','triggers','weather','relief'].forEach(g => {
