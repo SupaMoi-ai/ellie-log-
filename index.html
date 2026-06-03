@@ -1135,7 +1135,13 @@
     </div>
 
     <div class="form-section">
-      <div class="section-label">Vær</div>
+      <div class="section-label">VÆR — AUTOMATISK</div>
+      <div id="wx-status" style="padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.5;">Henter posisjon…</div>
+      <div id="wx-warn" style="display:none;font-family:var(--font-mono);font-size:11px;color:#c0392b;margin-bottom:6px;padding:6px 10px;background:#fdf2f2;border-radius:6px;"></div>
+      <div id="wx-note" style="display:none;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:4px;">📍 Appen bruker telefonens GPS og henter værdata fra Open-Meteo — europeisk værtjeneste basert på samme modell som YR. Koordinatene forlater ikke appen og lagres ikke eksternt.</div>
+    </div>
+    <div class="form-section">
+      <div class="section-label">VÆR — ELLER VELG MANUELT</div>
       <div class="chips" id="chips-weather">
         <span class="chip" onclick="toggleChip(this,'weather')">☀️ Sunny/warm</span>
         <span class="chip" onclick="toggleChip(this,'weather')">🌧️ Rain</span>
@@ -1233,6 +1239,16 @@
         <div class="ins-label">Hjelper oftest</div>
         <div class="ins-val" id="stat-relief" style="font-size:14px; padding-top:4px;">—</div>
         <div class="ins-sub">etter hyppighet</div>
+      </div>
+      <div class="insight-card">
+        <div class="ins-label">Snitt temp</div>
+        <div class="ins-val" id="stat-avg-temp">—</div>
+        <div class="ins-sub" id="stat-avg-temp-sub">°C ved anfall</div>
+      </div>
+      <div class="insight-card">
+        <div class="ins-label">Snitt trykk</div>
+        <div class="ins-val" id="stat-avg-pressure">—</div>
+        <div class="ins-sub" id="stat-avg-pressure-sub">hPa ved anfall</div>
       </div>
     </div>
 
@@ -1486,6 +1502,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let entries = [];
 let selectedPain = 0;
 const chipState = { location:[], onset:[], triggers:[], weather:[], relief:[] };
+let currentWx = null;
 let editingId = null;
 let editPain = 0;
 const editChipState = { location:[], onset:[], triggers:[], weather:[], relief:[] };
@@ -1546,6 +1563,7 @@ function switchTab(name) {
   document.getElementById('panel-' + name).classList.add('active');
   if (name === 'patterns') renderPatterns();
   if (name === 'history') renderHistory();
+  if (name === 'log') fetchWeather();
 }
 
 // ---- FORM ----
@@ -1592,12 +1610,14 @@ async function saveEntry() {
     triggers: [...chipState.triggers],
     weather: [...chipState.weather],
     relief: [...chipState.relief],
-    notes
+    notes,
+    wx: currentWx
   };
 
   const { data: inserted, error } = await sb.from('entries').insert(entry).select().single();
   if (error) { console.error('Supabase insert error:', error); showToast('Lagring feilet: ' + error.message); return; }
   entries.unshift(inserted);
+  currentWx = null;
   resetForm();
   renderAll();
   showToast('Anfall lagret ✓');
@@ -1617,6 +1637,12 @@ function resetForm() {
     chipState[g] = [];
     document.querySelectorAll(`#chips-${g} .chip`).forEach(c => c.classList.remove('active'));
   });
+  const wxBox = document.getElementById('wx-status');
+  if (wxBox) { wxBox.textContent = 'Henter posisjon…'; wxBox.style.color = 'var(--text-muted)'; }
+  const wxWarn = document.getElementById('wx-warn');
+  if (wxWarn) wxWarn.style.display = 'none';
+  const wxNote = document.getElementById('wx-note');
+  if (wxNote) wxNote.style.display = 'none';
 }
 
 // ---- RENDER ----
@@ -1691,6 +1717,7 @@ function renderHistory() {
         </div>
         ${e.notes ? `<div class="log-notes">${e.notes}</div>` : ''}
         ${e.duration ? `<div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-top:6px;">${e.duration} min</div>` : ''}
+        ${e.wx ? `<div style="font-family:var(--font-mono);font-size:9px;margin-top:4px;color:${e.wx.pressure < 1000 ? '#c0392b' : 'var(--text-muted)'};">🌡 ${e.wx.temp}° · ${e.wx.pressure} hPa · ${e.wx.desc}</div>` : ''}
       </div>
       <div class="log-intensity">
         <div class="intensity-dot intensity-${e.pain}">${e.pain}</div>
@@ -1734,6 +1761,22 @@ function renderPatterns() {
   entries.forEach(e => (e.relief||[]).forEach(r => { reliefMap[r] = (reliefMap[r]||0)+1; }));
   const topRelief = Object.entries(reliefMap).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('stat-relief').textContent = topRelief ? topRelief[0] : '—';
+
+  // Weather stats
+  const wxEntries = entries.filter(e => e.wx);
+  if (wxEntries.length) {
+    const avgTemp = (wxEntries.reduce((s,e) => s + e.wx.temp, 0) / wxEntries.length).toFixed(1);
+    document.getElementById('stat-avg-temp').textContent = avgTemp + '°';
+    const avgPressure = Math.round(wxEntries.reduce((s,e) => s + e.wx.pressure, 0) / wxEntries.length);
+    document.getElementById('stat-avg-pressure').textContent = avgPressure + ' hPa';
+    const lowCount = wxEntries.filter(e => e.wx.pressure < 1000).length;
+    const lowPct = Math.round(lowCount / wxEntries.length * 100);
+    if (lowPct > 50) {
+      const sub = document.getElementById('stat-avg-pressure-sub');
+      sub.textContent = `⚠️ ${lowPct}% lavtrykk`;
+      sub.style.color = '#c0392b';
+    }
+  }
 
   // Daily pain chart
   renderDailyPain();
@@ -1962,6 +2005,87 @@ function copyDoctorReport() {
     try { document.execCommand('copy'); showToast('Kopiert til utklippstavle ✓'); } catch(_) {}
     ta.value = prev; ta.style.cssText = 'position:absolute;left:-9999px;';
   }
+}
+
+// ---- WEATHER ----
+const WMO = {
+  0:'Klart', 1:'Mest klart', 2:'Delvis skyet', 3:'Overskyet',
+  45:'Tåke', 48:'Tåke',
+  51:'Yr', 53:'Yr', 55:'Yr',
+  61:'Regn', 63:'Regn', 65:'Regn',
+  71:'Snø', 73:'Snø', 75:'Snø',
+  80:'Regnbyger', 81:'Regnbyger', 82:'Regnbyger',
+  95:'Tordenvær', 99:'Tordenvær'
+};
+
+async function fetchWeather() {
+  const box = document.getElementById('wx-status');
+  if (!box) return;
+  let lat, lon;
+  const cached = sessionStorage.getItem('wx-coords');
+  if (cached) {
+    ({ lat, lon } = JSON.parse(cached));
+  } else {
+    box.textContent = 'Henter posisjon…';
+    box.style.color = 'var(--text-muted)';
+    try {
+      const pos = await new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('timeout')), 8000);
+        navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res(p); }, rej, { timeout: 8000 });
+      });
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+      sessionStorage.setItem('wx-coords', JSON.stringify({ lat, lon }));
+    } catch { setWxError(); return; }
+  }
+  const box2 = document.getElementById('wx-status');
+  if (box2) { box2.textContent = 'Henter vær…'; box2.style.color = 'var(--text-muted)'; }
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,weather_code,wind_speed_10m&timezone=auto`,
+      { signal: ctrl.signal }
+    );
+    clearTimeout(tid);
+    const d = await r.json();
+    const c = d.current;
+    currentWx = {
+      temp:      Math.round(c.temperature_2m * 10) / 10,
+      pressure:  Math.round(c.surface_pressure * 10) / 10,
+      code:      c.weather_code,
+      desc:      WMO[c.weather_code] || 'Ukjent',
+      wind:      Math.round(c.wind_speed_10m * 10) / 10,
+      fetchedAt: new Date().toTimeString().slice(0, 5)
+    };
+    renderWxBox();
+  } catch { setWxError(); }
+}
+
+function renderWxBox() {
+  const box  = document.getElementById('wx-status');
+  const warn = document.getElementById('wx-warn');
+  const note = document.getElementById('wx-note');
+  if (!box || !currentWx) return;
+  box.textContent = `${currentWx.temp}° · ${currentWx.pressure} hPa · ${currentWx.desc} · Vind ${currentWx.wind} m/s · hentet ${currentWx.fetchedAt}`;
+  box.style.color = 'var(--text)';
+  if (warn) {
+    if (currentWx.pressure < 1000) {
+      warn.textContent = `⚠️ Lavtrykk (${currentWx.pressure} hPa) — trykkfall er dokumentert FEPS3-utløser`;
+      warn.style.display = 'block';
+    } else { warn.style.display = 'none'; }
+  }
+  if (note) note.style.display = 'block';
+}
+
+function setWxError() {
+  currentWx = null;
+  const box  = document.getElementById('wx-status');
+  const warn = document.getElementById('wx-warn');
+  const note = document.getElementById('wx-note');
+  if (box)  { box.textContent = 'Vær ikke tilgjengelig — velg manuelt nedenfor'; box.style.color = 'var(--text-muted)'; }
+  if (warn) warn.style.display = 'none';
+  if (note) note.style.display = 'none';
 }
 
 function showToast(msg) {
