@@ -1142,9 +1142,11 @@
 
     <div class="form-section">
       <div class="section-label">VÆR — AUTOMATISK</div>
-      <div id="wx-status" style="padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.5;">Henter posisjon…</div>
-      <div id="wx-warn" style="display:none;font-family:var(--font-mono);font-size:11px;color:#c0392b;margin-bottom:6px;padding:6px 10px;background:#fdf2f2;border-radius:6px;"></div>
-      <div id="wx-note" style="display:none;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:4px;">📍 Appen bruker telefonens GPS og henter værdata fra Open-Meteo — europeisk værtjeneste basert på samme modell som YR. Koordinatene forlater ikke appen og lagres ikke eksternt.</div>
+      <div style="border-left:3px solid var(--accent);padding-left:12px;">
+        <div id="wx-status" style="padding:10px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);line-height:1.5;">Henter posisjon…</div>
+        <div id="wx-warn" style="display:none;font-family:var(--font-mono);font-size:11px;color:#c0392b;margin-bottom:6px;padding:6px 10px;background:#fdf2f2;border-radius:6px;"></div>
+        <div id="wx-note" style="display:none;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:4px;">📍 Appen bruker telefonens GPS og henter værdata fra Open-Meteo — europeisk værtjeneste basert på samme modell som YR. Koordinatene forlater ikke appen og lagres ikke eksternt.</div>
+      </div>
     </div>
     <div class="form-section">
       <div class="section-label">VÆR — ELLER VELG MANUELT</div>
@@ -2057,7 +2059,7 @@ async function fetchWeather() {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,weather_code,wind_speed_10m&timezone=auto`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,weather_code,wind_speed_10m&wind_speed_unit=ms&timezone=auto`,
       { signal: ctrl.signal }
     );
     clearTimeout(tid);
@@ -2156,7 +2158,7 @@ async function backfillWeather() {
     if (btn) btn.textContent = `Oppdaterer ${done}/${toBackfill.length}…`;
     try {
       const r = await fetch(
-        `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,surface_pressure,weather_code,wind_speed_10m&timezone=auto`
+        `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,surface_pressure,weather_code,wind_speed_10m&wind_speed_unit=ms&timezone=auto`
       );
       const d = await r.json();
       const times = d.hourly.time;       // ["2024-01-15T00:00", ...]
