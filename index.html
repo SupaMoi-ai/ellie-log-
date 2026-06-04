@@ -1302,6 +1302,15 @@
       </div>
     </div>
 
+    <!-- SISTE NYTT — øverst -->
+    <div style="margin-top:20px;">
+      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Siste nytt</div>
+      <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);margin-bottom:4px;">Forskning &amp; medisiner</div>
+      <div style="font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:16px;">Det skjer mer på dette feltet nå enn på lenge.</div>
+      <div id="news-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div style="margin-top:18px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;">Kilde: SMART-MD Journal of Precision Medicine, 2026</div>
+    </div>
+
     <div class="source-links">
       <div class="source-links-label">Åpne søk på nett (alltid oppdatert)</div>
       <a class="source-link" href="https://scholar.google.com/scholar?q=SCN11A+%22Ser697Pro%22+OR+%22c.2089T%3EC%22&hl=no&as_sdt=0,5" target="_blank" rel="noopener">
@@ -1320,37 +1329,6 @@
         <span class="source-name">ClinicalTrials.gov — Nav1.9 / SCN11A trials</span>
         <span class="source-arrow">↗</span>
       </a>
-    </div>
-
-    <div class="findings-box">
-      <div class="findings-label">Det vi vet så langt (mai 2026)</div>
-
-      <div class="finding">
-        <div class="finding-head">Mekanismen</div>
-        <p>FEPS3 er en «gain-of-function»-tilstand – natriumkanalen Nav1.9 i smertenervene er overaktiv, så smertenervene fyrer for lett. Derfor er medisiner som roer ned natriumkanalen (som lamotrigin) det logiske å prøve.</p>
-      </div>
-
-      <div class="finding">
-        <div class="finding-head">Utløsere og lindring (bekreftet)</div>
-        <p>Anfall blir verre av kulde, tretthet, faste, værforandringer, forkjølelse og mye svetting etter aktivitet. Det vonde området føles ofte kaldt – og <strong>varme/varm klut</strong> pluss betennelsesdempende medisin hjelper ofte. Dette passer med Ellie og er grunnen til at vi følger med på utløsere.</p>
-      </div>
-
-      <div class="finding">
-        <div class="finding-head">Et veldig likt barn-tilfelle</div>
-        <p>Et barn med en annen Nav1.9-endring hadde anfallsvis smerte i begge ben <em>i tillegg til</em> anfallsvis vondt i magen og forstoppelse – en påminnelse om at mage/tarm-plager kan høre til samme tilstand. Verdt å notere hvis det dukker opp.</p>
-      </div>
-
-      <div class="finding">
-        <div class="finding-head">Det som gir håp</div>
-        <p>Det finnes nå en musemodell laget spesielt for å teste medisiner mot SCN11A-smerte. Sammen med den nye bølgen av målrettede natriumkanal-medisiner, er dette veien mot en behandling som faktisk sikter på Ellies kanal. Verdt å følge med på lenkene over.</p>
-      </div>
-
-      <div class="finding">
-        <div class="finding-head">Til trøst</div>
-        <p>Symptomene pleier å bli mildere med alderen, og noen responderer ganske godt på behandling – derfor er tidlig diagnose og logging (det vi gjør) viktig.</p>
-      </div>
-
-      <div class="findings-note">Til vår egen lesing – snakk alltid med Ellies lege før dere endrer noe.</div>
     </div>
 
     <div class="findings-box" style="border-left:3px solid var(--accent);">
@@ -1392,13 +1370,35 @@
       <div class="findings-note">Ta alltid med noe herfra til Dr. Mero før dere endrer noe.</div>
     </div>
 
-    <!-- SISTE NYTT -->
-    <div style="margin-top:28px;">
-      <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Siste nytt</div>
-      <div style="font-family:var(--font-serif);font-size:22px;color:var(--text);margin-bottom:4px;">Forskning &amp; medisiner</div>
-      <div style="font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:16px;">Det skjer mer på dette feltet nå enn på lenge.</div>
-      <div id="news-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-      <div style="margin-top:18px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;">Kilde: SMART-MD Journal of Precision Medicine, 2026</div>
+    <div class="findings-box">
+      <div class="findings-label">Det vi vet så langt (mai 2026)</div>
+
+      <div class="finding">
+        <div class="finding-head">Mekanismen</div>
+        <p>FEPS3 er en «gain-of-function»-tilstand – natriumkanalen Nav1.9 i smertenervene er overaktiv, så smertenervene fyrer for lett. Derfor er medisiner som roer ned natriumkanalen (som lamotrigin) det logiske å prøve.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">Utløsere og lindring (bekreftet)</div>
+        <p>Anfall blir verre av kulde, tretthet, faste, værforandringer, forkjølelse og mye svetting etter aktivitet. Det vonde området føles ofte kaldt – og <strong>varme/varm klut</strong> pluss betennelsesdempende medisin hjelper ofte. Dette passer med Ellie og er grunnen til at vi følger med på utløsere.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">Et veldig likt barn-tilfelle</div>
+        <p>Et barn med en annen Nav1.9-endring hadde anfallsvis smerte i begge ben <em>i tillegg til</em> anfallsvis vondt i magen og forstoppelse – en påminnelse om at mage/tarm-plager kan høre til samme tilstand. Verdt å notere hvis det dukker opp.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">Det som gir håp</div>
+        <p>Det finnes nå en musemodell laget spesielt for å teste medisiner mot SCN11A-smerte. Sammen med den nye bølgen av målrettede natriumkanal-medisiner, er dette veien mot en behandling som faktisk sikter på Ellies kanal. Verdt å følge med på lenkene over.</p>
+      </div>
+
+      <div class="finding">
+        <div class="finding-head">Til trøst</div>
+        <p>Symptomene pleier å bli mildere med alderen, og noen responderer ganske godt på behandling – derfor er tidlig diagnose og logging (det vi gjør) viktig.</p>
+      </div>
+
+      <div class="findings-note">Til vår egen lesing – snakk alltid med Ellies lege før dere endrer noe.</div>
     </div>
 
     <!-- LOGGINGSGUIDE -->
