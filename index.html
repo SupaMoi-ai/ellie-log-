@@ -2076,10 +2076,14 @@ function renderWxBox() {
   const warn = document.getElementById('wx-warn');
   const note = document.getElementById('wx-note');
   if (!box || !currentWx) return;
+  const pDelta = Math.round(currentWx.pressure - 1013);
+  const pDeltaStr = pDelta === 0 ? 'normalt' : (pDelta > 0 ? `+${pDelta}` : `${pDelta}`) + ' fra normalt';
+  const pColor = currentWx.pressure < 1000 ? '#c0392b' : 'var(--text)';
+  const pSubColor = currentWx.pressure < 1000 ? '#c0392b' : 'var(--text-muted)';
   box.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;">
       <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">TEMPERATUR</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.temp}°</div></div>
-      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">LUFTTRYKK</div><div style="font-size:14px;color:${currentWx.pressure < 1000 ? '#c0392b' : 'var(--text)'};font-weight:500;">${currentWx.pressure} hPa</div></div>
+      <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">LUFTTRYKK</div><div style="font-size:14px;color:${pColor};font-weight:500;">${currentWx.pressure} hPa</div><div style="font-size:9px;color:${pSubColor};margin-top:1px;">normalt 1013 · ${pDeltaStr}</div></div>
       <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">VÆR</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.desc}</div></div>
       <div><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;">VIND</div><div style="font-size:14px;color:var(--text);font-weight:500;">${currentWx.wind} m/s</div></div>
     </div>
