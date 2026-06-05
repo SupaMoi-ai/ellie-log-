@@ -1548,7 +1548,6 @@ async function logout() {
 
 async function startApp() {
   await loadEntries();
-  await maybeMigrateLocal();
   renderAll();
 }
 
@@ -1556,16 +1555,6 @@ async function loadEntries() {
   const { data, error } = await sb.from('entries').select('*').order('id', { ascending: false });
   if (error) { showToast('Kunne ikke laste data'); entries = []; return; }
   entries = data || [];
-}
-
-async function maybeMigrateLocal() {
-  const old = JSON.parse(localStorage.getItem('ellie-pain-log') || '[]');
-  if (!old.length) return;
-  if (confirm(`Fant ${old.length} anfall lagret lokalt på denne telefonen. Laste dem opp til den delte loggen?`)) {
-    const { error } = await sb.from('entries').upsert(old);
-    if (!error) { localStorage.removeItem('ellie-pain-log'); await loadEntries(); }
-    else showToast('Opplasting feilet');
-  }
 }
 
 // ---- TABS ----
@@ -1580,21 +1569,26 @@ function switchTab(name) {
 }
 
 // ---- FORM ----
-function setPain(val) {
-  selectedPain = val;
-  document.querySelectorAll('.pain-btn').forEach((b,i) => {
-    b.className = 'pain-btn' + (i+1 === val ? ' selected-' + val : '');
+function _updatePainButtons(selector, val) {
+  document.querySelectorAll(selector).forEach((b, i) => {
+    b.className = 'pain-btn' + (i + 1 === val ? ' selected-' + val : '');
   });
 }
 
-function toggleChip(el, group) {
+function setPain(val) {
+  selectedPain = val;
+  _updatePainButtons('.pain-btn', val);
+}
+
+function _toggleChipState(el, group, state) {
   el.classList.toggle('active');
   const val = el.textContent.trim();
-  const arr = chipState[group];
+  const arr = state[group];
   const idx = arr.indexOf(val);
-  if (idx > -1) arr.splice(idx, 1);
-  else arr.push(val);
+  if (idx > -1) arr.splice(idx, 1); else arr.push(val);
 }
+function toggleChip(el, group)     { _toggleChipState(el, group, chipState); }
+function toggleEditChip(el, group) { _toggleChipState(el, group, editChipState); }
 
 async function saveEntry() {
   const date = document.getElementById('f-date').value;
@@ -1661,7 +1655,9 @@ function resetForm() {
 // ---- RENDER ----
 function renderAll() {
   document.getElementById('total-entries').textContent = entries.length;
-  renderProgress();
+  if (document.getElementById('panel-history')?.classList.contains('active')) {
+    renderProgress();
+  }
 }
 
 function renderProgress() {
@@ -1710,6 +1706,7 @@ function renderProgress() {
 
 function renderHistory() {
   const list = document.getElementById('history-list');
+  renderProgress();
   if (!entries.length) {
     list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Ingen anfall logget ennå.</div>';
     return;
@@ -1824,16 +1821,16 @@ function renderDailyPain() {
   const vals = Object.values(dayMap);
   const maxVal = Math.max(...vals.map(v => v.count > 0 ? v.total / v.count : 0), 1);
   const keys = Object.keys(dayMap);
-  keys.forEach((date, i) => {
+  container.innerHTML = keys.map(date => {
     const { total, count } = dayMap[date];
     const avg = count > 0 ? total / count : 0;
-    const bar = document.createElement('div');
     const heightPct = avg > 0 ? Math.max(4, Math.round((avg / maxVal) * 100)) : 2;
     const opacity = count > 0 ? 0.4 + 0.6 * (avg / 5) : 0.08;
-    bar.style.cssText = `flex:1;height:${heightPct}%;background:var(--accent);opacity:${opacity};border-radius:2px 2px 0 0;cursor:default;transition:opacity .15s;`;
-    bar.title = count > 0 ? `${date}: ${count} anfall, snitt styrke ${(avg).toFixed(1)}` : date;
-    container.appendChild(bar);
-  });
+    const title = count > 0
+      ? `${date}: ${count} anfall, snitt styrke ${avg.toFixed(1)}`
+      : date;
+    return `<div style="flex:1;height:${heightPct}%;background:var(--accent);opacity:${opacity};border-radius:2px 2px 0 0;cursor:default;transition:opacity .15s;" title="${title}"></div>`;
+  }).join('');
   const startDate = keys[0] ? keys[0].slice(5) : '';
   const endDate = keys[keys.length-1] ? keys[keys.length-1].slice(5) : '';
   document.getElementById('daily-pain-start').textContent = startDate;
@@ -1953,17 +1950,7 @@ function closeEditModal() {
 
 function setEditPain(val) {
   editPain = val;
-  document.querySelectorAll('#edit-pain-scale .pain-btn').forEach((b, i) => {
-    b.className = 'pain-btn' + (i + 1 === val ? ' selected-' + val : '');
-  });
-}
-
-function toggleEditChip(el, group) {
-  el.classList.toggle('active');
-  const val = el.textContent.trim();
-  const arr = editChipState[group];
-  const idx = arr.indexOf(val);
-  if (idx > -1) arr.splice(idx, 1); else arr.push(val);
+  _updatePainButtons('#edit-pain-scale .pain-btn', val);
 }
 
 async function saveEditEntry() {
@@ -2033,26 +2020,37 @@ const WMO = {
   95:'Tordenvær', 99:'Tordenvær'
 };
 
+async function getCoords() {
+  const cached = sessionStorage.getItem('wx-coords');
+  if (cached) return JSON.parse(cached);
+  const pos = await new Promise((res, rej) => {
+    const t = setTimeout(() => rej(new Error('timeout')), 8000);
+    navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res(p); }, rej, { timeout: 8000 });
+  });
+  const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+  sessionStorage.setItem('wx-coords', JSON.stringify(coords));
+  return coords;
+}
+
+function buildWx(temp, pressure, code, wind, time) {
+  return {
+    temp:      Math.round(temp * 10) / 10,
+    pressure:  Math.round(pressure * 10) / 10,
+    code,
+    desc:      WMO[code] || 'Ukjent',
+    wind:      Math.round(wind * 10) / 10,
+    fetchedAt: time
+  };
+}
+
 async function fetchWeather() {
   const box = document.getElementById('wx-status');
   if (!box) return;
+  box.textContent = 'Henter posisjon…';
+  box.style.color = 'var(--text-muted)';
   let lat, lon;
-  const cached = sessionStorage.getItem('wx-coords');
-  if (cached) {
-    ({ lat, lon } = JSON.parse(cached));
-  } else {
-    box.textContent = 'Henter posisjon…';
-    box.style.color = 'var(--text-muted)';
-    try {
-      const pos = await new Promise((res, rej) => {
-        const t = setTimeout(() => rej(new Error('timeout')), 8000);
-        navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res(p); }, rej, { timeout: 8000 });
-      });
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-      sessionStorage.setItem('wx-coords', JSON.stringify({ lat, lon }));
-    } catch { setWxError(); return; }
-  }
+  try { ({ lat, lon } = await getCoords()); }
+  catch { setWxError(); return; }
   const box2 = document.getElementById('wx-status');
   if (box2) { box2.textContent = 'Henter vær…'; box2.style.color = 'var(--text-muted)'; }
   try {
@@ -2065,14 +2063,7 @@ async function fetchWeather() {
     clearTimeout(tid);
     const d = await r.json();
     const c = d.current;
-    currentWx = {
-      temp:      Math.round(c.temperature_2m * 10) / 10,
-      pressure:  Math.round(c.surface_pressure * 10) / 10,
-      code:      c.weather_code,
-      desc:      WMO[c.weather_code] || 'Ukjent',
-      wind:      Math.round(c.wind_speed_10m * 10) / 10,
-      fetchedAt: new Date().toTimeString().slice(0, 5)
-    };
+    currentWx = buildWx(c.temperature_2m, c.surface_pressure, c.weather_code, c.wind_speed_10m, new Date().toTimeString().slice(0,5));
     renderWxBox();
   } catch { setWxError(); }
 }
@@ -2120,23 +2111,11 @@ async function backfillWeather() {
 
   // 1. GPS-koordinater
   let lat, lon;
-  const cached = sessionStorage.getItem('wx-coords');
-  if (cached) {
-    ({ lat, lon } = JSON.parse(cached));
-  } else {
-    try {
-      const pos = await new Promise((res, rej) => {
-        const t = setTimeout(() => rej(new Error('timeout')), 8000);
-        navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res(p); }, rej, { timeout: 8000 });
-      });
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-      sessionStorage.setItem('wx-coords', JSON.stringify({ lat, lon }));
-    } catch {
-      showToast('Kunne ikke hente posisjon');
-      if (btn) { btn.disabled = false; btn.textContent = 'Fyll inn historisk vær'; }
-      return;
-    }
+  try { ({ lat, lon } = await getCoords()); }
+  catch {
+    showToast('Kunne ikke hente posisjon');
+    if (btn) { btn.disabled = false; btn.textContent = 'Fyll inn historisk vær'; }
+    return;
   }
 
   // 2. Finn entries uten wx
@@ -2167,33 +2146,29 @@ async function backfillWeather() {
       const codes = d.hourly.weather_code;
       const winds = d.hourly.wind_speed_10m;
 
+      const updates = [];
       for (const entry of dateMap[date]) {
-        // Find closest hour index
         const entryHour = parseInt(entry.time.split(':')[0]);
-        let bestIdx = 0;
-        let bestDiff = 99;
+        let bestIdx = 0, bestDiff = 99;
         times.forEach((t, i) => {
           const h = parseInt(t.split('T')[1].split(':')[0]);
           const diff = Math.abs(h - entryHour);
           if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
         });
-
-        const wx = {
-          temp:      Math.round(temps[bestIdx] * 10) / 10,
-          pressure:  Math.round(pressures[bestIdx] * 10) / 10,
-          code:      codes[bestIdx],
-          desc:      WMO[codes[bestIdx]] || 'Ukjent',
-          wind:      Math.round(winds[bestIdx] * 10) / 10,
-          fetchedAt: entry.time
-        };
-
-        const { error } = await sb.from('entries').update({ wx }).eq('id', entry.id);
-        if (error) { console.error('backfill update error', entry.id, error); skipped++; continue; }
-
-        const idx = entries.findIndex(e => e.id === entry.id);
-        if (idx > -1) entries[idx].wx = wx;
-        done++;
-        if (btn) btn.textContent = `Oppdaterer ${done}/${toBackfill.length}…`;
+        const wx = buildWx(temps[bestIdx], pressures[bestIdx], codes[bestIdx], winds[bestIdx], entry.time);
+        updates.push({ ...entry, wx });
+      }
+      if (updates.length) {
+        const { error } = await sb.from('entries').upsert(updates);
+        if (error) { console.error('backfill upsert error', date, error); skipped += updates.length; }
+        else {
+          updates.forEach(u => {
+            const idx = entries.findIndex(e => e.id === u.id);
+            if (idx > -1) entries[idx].wx = u.wx;
+            done++;
+            if (btn) btn.textContent = `Oppdaterer ${done}/${toBackfill.length}…`;
+          });
+        }
       }
     } catch (err) {
       console.error('backfill fetch error for date', date, err);
